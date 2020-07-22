@@ -1,0 +1,142 @@
+use std::io;
+// use std::cell::RefCell;
+use std::vec::Vec;
+// consider use im::Vector; 
+use std::clone::Clone;
+
+#[derive(Clone)]
+struct Object {
+    name: String,
+    room: String,
+}
+
+#[derive(Clone)]
+struct Room {
+    name: String,
+    objects: Vec<String>,
+    doors: Vec<String>,
+}
+
+impl Room {
+    fn new(n: String) -> Room {
+        Room {
+            name: n,
+            objects: Vec::new(),
+            doors: Vec::new(),
+        }
+    }
+
+    fn add_door(&self, r: &Room) -> Room {
+        let mut room = self.clone();
+        let mut doors = self.doors.clone();
+        doors.push(r.name.clone());
+        room.doors = doors;
+        room
+    }
+}
+
+#[derive(Clone)]
+struct World {
+    objects: Vec<Object>,
+    rooms: Vec<Room>,
+}
+
+impl World {
+    fn new() -> World {
+        World {
+            objects: Vec::new(),
+            rooms: Vec::new(),
+        }
+    }
+
+    fn get_room(&self, s: String) -> Option<&Room> {
+        self.rooms.iter()
+            .find(|x| x.name == s)
+    }
+
+    fn update_room(&self, r: Room) -> World {
+        let rooms = self.rooms.iter().map(|x| {
+            let same = x.name == r.name;
+            let room = if same {&r} else {x};
+            room.clone()
+        }).collect();
+        World {
+            objects: self.objects.clone(),
+            rooms,
+        }
+    }
+
+    fn get_object(&self, s: String) -> Option<&Object> {
+        self.objects.iter()
+            .find(|x| x.name == s)
+    }
+
+    fn update_object(&self, o: Object) -> World {
+        let objs = self.objects.iter().map(|x| {
+            let same = x.name == o.name;
+            let obj = if same {&o} else {x};
+            obj.clone()
+        }).collect();
+        World {
+            objects: objs,
+            rooms: self.rooms.clone(),
+        }
+    }
+}
+
+fn main() {
+    let r1 = Room::new(String::from("r1"));
+    let r2 = Room::new(String::from("r2"));
+    let r3 = Room::new(String::from("r3"));
+
+    let mut world = World::new();
+    world.rooms = vec!(
+        r1, r2, r3
+    );
+
+    // To solve another day!
+    
+    //r1.add_door(&r2);
+    //r1.add_door(&r3);
+    //r2.add_door(&r1);
+    //r2.add_door(&r3);
+    //r3.add_door(&r1);
+
+
+
+    //let r3Second = r2.doors.get(1).clone();
+
+    println!("Hello, world!");
+    run_loop();
+}
+
+fn run_loop() {
+    let mut playing = true;
+    let mut echo = false;
+    while playing {
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("<error: stdin!>");
+        if echo {
+            println!("  echo: {}", input);
+        }
+        match input.trim() {
+            "echo" => {
+                echo = !echo;
+                if echo {
+                    println!("  (echo on!)");
+                } else {
+                    println!("  (echo off!)");
+                }
+            },
+            "quit" => {
+                playing = false;
+                println!("  (quitting...)");
+            },
+            _ => {
+                println!("  (unknown command...)");
+            }
+        }
+    }
+}
