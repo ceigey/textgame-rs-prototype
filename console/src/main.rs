@@ -4,23 +4,11 @@ use std::rc::Rc;
 use std::vec::Vec; 
 use std::clone::Clone;
 
+// Data-driven approach
+
 struct Object {
     name: String,
     room: String,
-}
-
-impl Object {
-    fn new(n: String) -> Object {
-        Object {
-            name: n,
-            room: String::from("")
-        }
-    }
-
-    fn enter_room(&mut self, r: &Room) -> &mut Self {
-        self.room = r.name.clone();
-        self
-    }
 }
 
 struct Room {
@@ -29,71 +17,104 @@ struct Room {
     doors: Vec<String>,
 }
 
-impl Room {
-    fn new(n: String) -> Room {
-        Room {
-            name: n,
-            objects: Vec::new(),
-            doors: Vec::new(),
-        }
-    }
+struct World {
+    objects: Vec<Object>,
+    rooms: Vec<Room>,
+}
 
-    fn add_door(&mut self, r: &Room) -> &mut Self {
-        self.doors.push(r.name.clone());
-        self
+impl Object {
+    fn new(name: &String) -> Self {
+        let room = String::from("");
+        Object { name: name.clone(), room }
     }
 }
 
-struct World {
-    objects: Vec<Rc<RefCell<Object>>>,
-    rooms: Vec<Rc<RefCell<Room>>>,
+impl Room {
+    fn new(name: &String) -> Self {
+        let objects = Vec::new();
+        let doors = Vec::new();
+        Room { name: name.clone(), objects, doors }
+    }
 }
 
 impl World {
     fn new() -> World {
-        World {
-            objects: Vec::new(),
-            rooms: Vec::new(),
+        let objects = Vec::new();
+        let rooms = Vec::new();
+        World { objects, rooms }
+    }
+
+    fn get_room(&mut self, name: &String) -> Option<&mut Room> {
+        self.rooms
+            .iter_mut()
+            .find(|x| x.name == name.clone())
+    }
+
+    fn add_room(&mut self, name: &String) -> &Self {
+        match self.get_room(name) {
+            None => {
+                let room = Room::new(name);
+                self.rooms.push(room)
+            },
+            Some(x) => eprintln!(
+                "Already have room {}", x.name)
         }
+        self
     }
 
-    fn get_room(&mut self, s: String)
-    -> Option<&Rc<RefCell<Room>>> {
-        self.rooms.iter()
-            .find(|x| x.borrow().name == s)
+    fn get_object(&mut self, name: &String) -> Option<&mut Object> {
+        self.objects
+            .iter_mut()
+            .find(|x| x.name == name.clone())
     }
 
-    fn get_object(&mut self, s: String)
-    -> Option<&Rc<RefCell<Object>>> {
-        self.objects.iter()
-            .find(|x| x.borrow().name == s)
+    fn add_object(&mut self, name: &String) -> &Self {
+        match self.get_object(name) {
+            None => {
+                let obj = Object::new(name);
+                self.objects.push(obj)
+            }
+            Some(x) => eprintln!(
+                "Already have {}", x.name)
+        }
+        self
+    }
+
+   fn  add_door(&mut self, n1: &String, n2: &String) -> &Self {
+        let m1 = self.get_room(n1);
+        let m2 = self.get_room(n2);
+        match (m1, m2) {
+            (Some(r1), Some(r2)) =>
+                r1.doors.push(r2.name.clone()),
+            (Some(r1), None) =>
+                eprintln!("Missing {}", n2),
+            (None, Some(r2)) =>
+                eprintln!("Missing {}", n1),
+            (None, None) =>
+                eprintln!("Missing {}, {}",
+                    n1,n2)
+        }
+        self
     }
 }
 
 fn main() {
-    let r1 =Rc::new(
-        RefCell::new(
-            Room::new(String::from("r1"))));
-    let r2 = Rc::new(
-        RefCell::new(
-            Room::new(String::from("r2"))));
-    let r3 = Rc::new(
-        RefCell::new(
-            Room::new(String::from("r3"))));
-
     let mut world = World::new();
-    world.rooms = vec!(
-        r1.clone(), r2.clone(), r3.clone()
-    );
+    let r1 = String::from("r1");
+    let r2 = String::from("r2");
+    let r3 = String::from("r3");
+    let player = String::from("player");
 
-    // To solve another day!
-    
-    r1.borrow_mut().add_door(&r2.borrow());
-    r1.borrow_mut().add_door(&r3.borrow());
-    r2.borrow_mut().add_door(&r1.borrow());
-    r2.borrow_mut().add_door(&r3.borrow());
-    r3.borrow_mut().add_door(&r1.borrow());
-
+    world
+        .add_room(&r1)
+        .add_room(&r2)
+        .add_room(&r3)
+        .add_door(&r1, &r2)
+        .add_door(&r1, &r3)
+        .add_door(&r2, &r1)
+        .add_door(&r2, &r3)
+        .add_door(&r3, &r1)
+        .add_object(&player.clone());
     println!("Hello, world!");
     run_loop();
 }

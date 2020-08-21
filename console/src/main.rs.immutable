@@ -1,0 +1,127 @@
+use std::io;
+use std::cell::RefCell;
+use std::cell::Cell;
+use std::rc::Rc;
+use std::vec::Vec; 
+use std::clone::Clone;
+
+
+#[derive(Clone)]
+struct Object {
+    name: String,
+    room: String,
+}
+
+#[derive(Clone)]
+struct Room {
+    name: String,
+    objects: Vec<String>,
+    doors: Vec<String>,
+}
+
+#[derive(Clone)]
+struct World {
+    objects: Vec<Object>,
+    rooms: Vec<Room>,
+}
+
+impl Object {
+    fn new(name: String) -> Object {
+        let room = String::from("");
+        Object { name, room }
+    }
+
+    fn enter_room(&self, r: &Room) -> Self {
+        Object { room: r.name.clone(), ..self.clone() }
+    }
+}
+
+impl Room {
+    fn new(name: String) -> Room {
+        let objects = Vec::new();
+        let doors = Vec::new();
+        Room { name, objects, doors }
+    }
+
+    fn add_door(&self, r: &Room) -> Self {
+        let doors = self.doors.clone();
+        doors.push(r.name.clone());
+        Room { doors, ..self.clone() }
+    }
+}
+
+impl World {
+    fn new() -> World {
+        let objects = Vec::new();
+        let rooms = Vec::new();
+        World { objects, rooms }
+    }
+
+    //fn add_room(&self, room: Room) -> &Self {
+    //    let rooms = self.rooms.
+   //
+    //}
+
+    fn get_room(&self, name: &String) -> Option<Room> {
+        self.rooms
+            .iter()
+            .find(|x| x.name == name)
+    }
+
+    fn get_object(&self, name: &String) -> Option<Object> {
+        self.objects
+            .iter()
+            .find(|x| x.name == name)
+    }
+}
+
+fn main() {
+    let r1 = Room::new(String::from("r1"));
+    let r2 = Room::new(String::from("r2"));
+    let r3 = Room::new(String::from("r3"));
+    
+    &r1.add_door(&r2).add_door(&r3);
+    &r2.add_door(&r1).add_door(&r3);
+    &r3.add_door(&r1);
+
+    let rooms = vec!(r1, r2, r3);
+    let mut world = World::new();
+    world.rooms = rooms;
+
+    // To solve another day!
+    
+   
+    println!("Hello, world!");
+    run_loop();
+}
+
+fn run_loop() {
+    let mut playing = true;
+    let mut echo = false;
+    while playing {
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("<error: stdin!>");
+        if echo {
+            println!("  echo: {}", input);
+        }
+        match input.trim() {
+            "echo" => {
+                echo = !echo;
+                if echo {
+                    println!("  (echo on!)");
+                } else {
+                    println!("  (echo off!)");
+                }
+            },
+            "quit" => {
+                playing = false;
+                println!("  (quitting...)");
+            },
+            _ => {
+                println!("  (unknown command...)");
+            }
+        }
+    }
+}
