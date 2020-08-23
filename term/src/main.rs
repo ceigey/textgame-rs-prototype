@@ -126,6 +126,7 @@ fn game_loop() {
         .unwrap_or(&mut def_p);
     //We have to copy data before
     //passing world around again
+    //cf. https://stackoverflow.com/a/47619305
     let r3_to = r3_mp.to.clone();
     let r3_from = r3_mp.from.clone();
 
